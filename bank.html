@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bank Reconciliation Tool</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      font-size: 16px;
+      padding: 10px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .output {
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      background: #f9f9f9;
+    }
+    pre {
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>Bank Reconciliation Tool</h1>
+  <p>Copy the Book Data and Bank Statement columns from Excel and paste them below:</p>
+
+  <h3>Book Data:</h3>
+  <textarea id="bookDataInput" placeholder="Paste your book data column here..."></textarea>
+
+  <h3>Bank Statement:</h3>
+  <textarea id="bankStatementInput" placeholder="Paste your bank statement column here..."></textarea>
+
+  <button onclick="reconcileData()">Reconcile Data</button>
+
+  <div id="output" class="output" style="display: none;">
+    <h3>Reconciliation Results:</h3>
+    <pre id="outputContent"></pre>
+  </div>
+
+  <script>
+    function normalizeValue(value) {
+      // Convert to number if possible, otherwise return as string
+      const num = parseFloat(value);
+      return isNaN(num) ? value.trim() : num;
+    }
+
+    function reconcileData() {
+      // Get the pasted data from the textareas
+      const bookDataInput = document.getElementById('bookDataInput').value;
+      const bankStatementInput = document.getElementById('bankStatementInput').value;
+
+      if (!bookDataInput.trim() || !bankStatementInput.trim()) {
+        alert("Please paste data into both fields!");
+        return;
+      }
+
+      // Process Book Data and Bank Statement
+      const bookData = bookDataInput.split('\n')
+        .filter(row => row.trim() !== '')
+        .map(normalizeValue);
+
+      const bankStatement = bankStatementInput.split('\n')
+        .filter(row => row.trim() !== '')
+        .map(normalizeValue);
+
+      // Reconciliation Logic
+      const matchedTransactions = [];
+      const bookUnmatched = [];
+      const bankUnmatched = [...bankStatement]; // Copy of Bank Statement
+
+      bookData.forEach((transaction) => {
+        const matchIndex = bankUnmatched.indexOf(transaction);
+        if (matchIndex !== -1) {
+          // Match found
+          matchedTransactions.push(transaction);
+          bankUnmatched.splice(matchIndex, 1); // Remove from bank unmatched
+        } else {
+          // No match found
+          bookUnmatched.push(transaction);
+        }
+      });
+
+      // Output Reconciliation Results
+      const outputContent = document.getElementById('outputContent');
+      outputContent.textContent = `
+Matched Transactions:
+${matchedTransactions.length > 0 ? matchedTransactions.join('\n') : 'None'}
+
+Unmatched in Book Data:
+${bookUnmatched.length > 0 ? bookUnmatched.join('\n') : 'None'}
+
+Unmatched in Bank Statement:
+${bankUnmatched.length > 0 ? bankUnmatched.join('\n') : 'None'}
+      `;
+
+      document.getElementById('output').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
